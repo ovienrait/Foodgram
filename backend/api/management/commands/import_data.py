@@ -1,11 +1,11 @@
 import csv
 import os
-from django.core.management.base import BaseCommand
+
 from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
-from recipes.models import (
-    Tags, Ingredients, Recipes, IngredientsRecipes, TagsRecipes,
-    Favorite, ShoppingCart)
+from django.core.management.base import BaseCommand
+from recipes.models import (Favorite, Ingredients, IngredientsRecipes, Recipes,
+                            ShoppingCart, Tags, TagsRecipes)
 from users.models import CustomUser, Subscription
 
 

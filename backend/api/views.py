@@ -3,26 +3,25 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import baseconv
-from rest_framework import status, viewsets, filters
-from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-
+from recipes.models import (Favorite, Ingredients, IngredientsRecipes, Recipes,
+                            ShoppingCart, Tags)
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from users.models import CustomUser, Subscription
-from recipes.models import (
-    Tags, Ingredients, Recipes, Favorite, ShoppingCart, IngredientsRecipes)
+
 from .filters import RecipesFilter
 from .pagination import RecipesPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (
-    AvatarImageSerializer, UserSerializer, SubscriptionSerializer,
-    TagsSerializer, IngredientsSerializer, RecipesCreateSerializer,
-    RecipesGETSerializer, ShortRecipeSerializer)
+from .serializers import (AvatarImageSerializer, IngredientsSerializer,
+                          RecipesCreateSerializer, RecipesGETSerializer,
+                          ShortRecipeSerializer, SubscriptionSerializer,
+                          TagsSerializer, UserSerializer)
 
 
 class CustomUserViewSet(UserViewSet):
