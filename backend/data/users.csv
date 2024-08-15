@@ -1,0 +1,5 @@
+id,email,username,first_name,last_name,password
+2,nikolay.kruzhevskiy@yandex.ru,kruzhe_chief,Николай,Кружевский,foodgram789456123
+3,julia.lyubimova@yandex.ru,cooking_julia,Юлия,Любимова,foodgram789456123
+4,pavel.skaperov@yandex.ru,pasha_pudding,Павел,Скаперов,foodgram789456123
+5,viktoria.ostanina@yandex.ru,sugar_vi,Виктория,Останина,foodgram789456123
