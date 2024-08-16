@@ -12,7 +12,6 @@ const About = ({ updateOrders, orders }) => {
     </MetaTags>
     
     <Container>
-      <h1 className={styles.title}>Привет!</h1>
       <div className={styles.content}>
         <div>
           <h2 className={styles.subtitle}>Что это за сайт?</h2>
@@ -35,10 +34,10 @@ const About = ({ updateOrders, orders }) => {
           </h2>
           <div className={styles.text}>
             <p className={styles.textItem}>
-              Код проекта находится тут - <a href="#" className={styles.textLink}>Github</a>
+              Код проекта находится тут - <a href="https://github.com/ArtemMaksimov-trial/foodgram" className={styles.textLink}>Github</a>
             </p>
             <p className={styles.textItem}>
-              Автор проекта: <a href="#" className={styles.textLink}>Имя Автора</a>
+              Автор проекта: <a href="https://t.me/ovienrait" className={styles.textLink}>Артем Максимов</a>
             </p>
           </div>
         </aside>

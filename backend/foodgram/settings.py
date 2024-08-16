@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-&khu_bqyfl#kx^5290s1-vutvr!asr0seg!!cq3qogdy=ac_qz'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['130.193.43.152', '127.0.0.1', 'localhost', 'foodgram.3utilities.com']
 
