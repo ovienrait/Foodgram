@@ -20,35 +20,39 @@ class IngredientsAdmin(admin.ModelAdmin):
 
 class IngredientsRecipesInline(admin.TabularInline):
     model = IngredientsRecipes
-    extra = 1
+    extra = 0
 
 
 @admin.register(Recipes)
 class RecipesAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'text', 'author', 'cooking_time', 'image',
-        'display_tags', 'display_ingredients',
-        'display_recipe_favorite', 'pub_date')
-    search_fields = ('name', 'author__email')
+        'name', 'text', 'cooking_time', 'image', 'author', 'display_tags',
+        'display_ingredients', 'display_favorite')
+    search_fields = ('name', 'author__username')
     list_filter = ('tags',)
-    inlines = [IngredientsRecipesInline,]
-
-    def display_recipe_favorite(self, obj):
-        count = Favorite.objects.filter(recipe=obj).count()
-        return count
-
-    display_recipe_favorite.short_description = (
-        'Количесво добавлений в избранное')
+    inlines = [IngredientsRecipesInline, ]
 
     def display_tags(self, obj):
-        return ', '.join([str(item) for item in obj.tags.all()])
+        tags = []
+        for tag in obj.tags.all():
+            tags.append(str(tag))
+        return ', '.join(tags)
 
     display_tags.short_description = 'Теги'
 
     def display_ingredients(self, obj):
-        return ', '.join([str(item) for item in obj.ingredients.all()])
+        ingredients = []
+        for ingredient in obj.ingredients.all():
+            ingredients.append(str(ingredient))
+        return ', '.join(ingredients)
 
     display_ingredients.short_description = 'Ингредиенты'
+
+    def display_favorite(self, obj):
+        return obj.favorite.count()
+
+    display_favorite.short_description = (
+        'Количесво добавлений в избранное')
 
 
 @admin.register(IngredientsRecipes)

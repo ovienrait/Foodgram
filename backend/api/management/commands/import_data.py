@@ -54,7 +54,7 @@ class Command(BaseCommand):
         with open(avatar_path, 'rb') as f:
             avatar = ContentFile(f.read(), name=avatar_filename)
         user, created = CustomUser.objects.get_or_create(
-            id=row['id'], email=row['email'], username=row['username'],
+            email=row['email'], username=row['username'],
             first_name=row['first_name'], last_name=row['last_name'],
             password=password, avatar=avatar)
         self.log_result(user, created, 'пользователь')
@@ -75,7 +75,7 @@ class Command(BaseCommand):
         """Импорт данных в модель Tags"""
 
         tag, created = Tags.objects.get_or_create(
-            id=row['id'], name=row['name'], slug=row['slug'])
+            name=row['name'], slug=row['slug'])
         self.log_result(tag, created, 'тег')
 
     def import_ingredients(self, row):
@@ -96,7 +96,7 @@ class Command(BaseCommand):
         with open(image_path, 'rb') as f:
             image = ContentFile(f.read(), name=image_filename)
         recipe, created = Recipes.objects.get_or_create(
-            id=row['id'], image=image, name=row['name'], text=row['text'],
+            image=image, name=row['name'], text=row['text'],
             cooking_time=row['cooking_time'],
             author=CustomUser.objects.get(id=row['author']))
         ingredients_list = row['ingredients'].split(',')
