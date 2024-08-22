@@ -9,8 +9,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['130.193.43.152', '127.0.0.1', 'localhost', 'foodgram.3utilities.com']
 
-CSRF_TRUSTED_ORIGINS = ['https://foodgram.3utilities.com']
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
