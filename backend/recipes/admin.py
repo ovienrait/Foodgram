@@ -32,6 +32,13 @@ class RecipesAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     inlines = [IngredientsRecipesInline, ]
 
+    def display_recipe_favorite(self, obj):
+        count = Favorite.objects.filter(recipe=obj).count()
+        return count
+
+    display_recipe_favorite.short_description = (
+        'Количесво добавлений в избранное')
+
     def display_tags(self, obj):
         tags = []
         for tag in obj.tags.all():
