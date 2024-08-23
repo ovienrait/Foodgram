@@ -117,6 +117,6 @@ jobs:
           sudo docker compose -f docker-compose.production.yml up -d
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
           sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
-          sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate --verbosity 3
+          sleep 10 && sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate --verbosity 3
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py create_superuser
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py import_data
