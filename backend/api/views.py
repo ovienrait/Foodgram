@@ -1,4 +1,3 @@
-import hashlib
 from collections import defaultdict
 from io import BytesIO
 
@@ -6,24 +5,27 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredients, IngredientsRecipes, Recipes,
-                            ShoppingCart, Tags)
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
+from rest_framework.exceptions import NotFound
+from rest_framework.pagination import (
+    LimitOffsetPagination, PageNumberPagination)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.models import CustomUser, Subscription
 
-from .serializers import (AvatarImageSerializer, IngredientSerializer,
-                          RecipeCreateUpdateSerializer, RecipeSerializer,
-                          ShortRecipeInfoSerializer, SubscriptionSerializer,
-                          TagSerializer, UserSerializer)
+from recipes.models import (
+    Favorite, Ingredient, IngredientRecipe, Recipe,
+    ShoppingCart, Tag)
+from users.models import CustomUser, Subscription
+from .serializers import (
+    AvatarImageSerializer, IngredientSerializer,
+    RecipeCreateUpdateSerializer, RecipeSerializer,
+    ShortRecipeInfoSerializer, SubscriptionSerializer,
+    TagSerializer, UserSerializer)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -44,13 +46,11 @@ class AvatarView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        if request.data:
-            serializer = AvatarImageSerializer(
-                request.user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = AvatarImageSerializer(
+            request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def delete(self, request):
         request.user.avatar.delete()
@@ -80,25 +80,28 @@ class SubscribeButtonView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def get_user_or_404(self, id):
+        """Возвращает пользователя или вызывает ошибку 404"""
+        try:
+            return CustomUser.objects.get(id=id)
+        except CustomUser.DoesNotExist:
+            raise NotFound(detail='Пользователь не найден.')
+
     def post(self, request, id):
         """Подписаться на пользователя"""
 
         subscriber = request.user
-        try:
-            subscription = CustomUser.objects.get(id=id)
-        except CustomUser.DoesNotExist:
-            return Response(
-                {'detail': 'Пользователь не найден'},
-                status=status.HTTP_404_NOT_FOUND)
+        subscription = self.get_user_or_404(id)
+
         if subscriber == subscription:
             return Response(
-                {'detail': 'Нельзя подписаться на самого себя'},
+                {'detail': 'Нельзя подписаться на самого себя.'},
                 status=status.HTTP_400_BAD_REQUEST)
         if Subscription.objects.filter(
             subscriber=subscriber, subscription=subscription
         ).exists():
             return Response(
-                {'detail': 'Вы уже подписаны на этого пользователя'},
+                {'detail': 'Вы уже подписаны на этого пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST)
         Subscription.objects.create(
             subscriber=subscriber, subscription=subscription)
@@ -112,28 +115,24 @@ class SubscribeButtonView(APIView):
         """Отписаться от пользователя"""
 
         subscriber = request.user
-        try:
-            subscription = CustomUser.objects.get(id=id)
-        except CustomUser.DoesNotExist:
-            return Response(
-                {'detail': 'Пользователь не найден'},
-                status=status.HTTP_404_NOT_FOUND)
+        subscription = self.get_user_or_404(id)
+
         current_subscription = Subscription.objects.filter(
             subscriber=subscriber, subscription=subscription
         ).first()
         if not current_subscription:
             return Response(
-                {'detail': 'Вы не подписаны на этого пользователя'},
+                {'detail': 'Вы не подписаны на этого пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST)
         current_subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TagsListView(APIView):
+class TagListView(APIView):
     """Обработчик для получения списка тегов"""
 
     def get(self, request):
-        tags = Tags.objects.all()
+        tags = Tag.objects.all()
         return Response(TagSerializer(tags, many=True).data)
 
 
@@ -142,19 +141,19 @@ class TagDetailView(APIView):
 
     def get(self, request, id):
         try:
-            tag = Tags.objects.get(pk=id)
-        except Tags.DoesNotExist:
+            tag = Tag.objects.get(pk=id)
+        except Tag.DoesNotExist:
             return Response(
-                {'detail': 'Тег не найден'},
+                {'detail': 'Тег не найден.'},
                 status=status.HTTP_404_NOT_FOUND)
         return Response(TagSerializer(tag).data)
 
 
-class IngredientsListView(APIView):
+class IngredientListView(APIView):
     """Обработчик для получения списка ингредиентов"""
 
     def get(self, request):
-        ingredients = Ingredients.objects.all()
+        ingredients = Ingredient.objects.all()
         search_query = request.query_params.get('name')
         if search_query:
             ingredients = ingredients.filter(name__istartswith=search_query)
@@ -167,22 +166,22 @@ class IngredientDetailView(APIView):
 
     def get(self, request, id):
         try:
-            ingredient = Ingredients.objects.get(pk=id)
-        except Ingredients.DoesNotExist:
+            ingredient = Ingredient.objects.get(pk=id)
+        except Ingredient.DoesNotExist:
             return Response(
-                {'detail': 'Ингредиент не найден'},
+                {'detail': 'Ингредиент не найден.'},
                 status=status.HTTP_404_NOT_FOUND)
         return Response(IngredientSerializer(ingredient).data)
 
 
-class RecipesListView(APIView):
+class RecipeListView(APIView):
     """Обработчик для получения списка рецептов с фильтрацией
     и создания нового рецепта"""
 
     def get(self, request):
         """Получение списка рецептов"""
 
-        recipes = Recipes.objects.all()
+        recipes = Recipe.objects.all()
 
         is_favorited = request.query_params.get('is_favorited')
         if is_favorited == '1' and request.user.is_authenticated:
@@ -215,57 +214,51 @@ class RecipesListView(APIView):
 
         serializer = RecipeCreateUpdateSerializer(
             data=request.data, context={'request': request})
-        if serializer.is_valid():
-            recipe = serializer.save(author=request.user)
-            serializer = RecipeSerializer(recipe, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        recipe = serializer.save(author=request.user)
+        serializer = RecipeSerializer(recipe, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RecipeDetailView(APIView):
     """Обработчик для получения информации о рецепте по ID,
     а также для изменения и удаления рецепта"""
 
+    def get_recipe_or_404(self, id):
+        """Возвращает рецепт или вызывает ошибку 404"""
+        try:
+            return Recipe.objects.get(pk=id)
+        except Recipe.DoesNotExist:
+            raise NotFound(detail='Рецепт не найден.')
+
     def get(self, request, id):
         """Получение информации о рецепте по ID"""
 
-        try:
-            recipe = Recipes.objects.get(pk=id)
-        except Recipes.DoesNotExist:
-            return Response(
-                {'detail': 'Рецепт не найден'},
-                status=status.HTTP_404_NOT_FOUND)
+        recipe = self.get_recipe_or_404(id)
         return Response(
             RecipeSerializer(recipe, context={'request': request}).data)
 
     def patch(self, request, id):
         """Изменение рецепта"""
 
-        try:
-            recipe = Recipes.objects.get(pk=id)
-        except Recipes.DoesNotExist:
-            return Response(
-                {'detail': 'Рецепт не найден'},
-                status=status.HTTP_404_NOT_FOUND)
+        recipe = self.get_recipe_or_404(id)
 
         if recipe.author != request.user:
             return Response(
-                {'detail': 'У вас нет прав на изменение этого рецепта'},
+                {'detail': 'У вас нет прав на изменение этого рецепта.'},
                 status=status.HTTP_403_FORBIDDEN)
 
         serializer = RecipeCreateUpdateSerializer(
-            recipe, data=request.data, partial=True,
-            context={'request': request})
-        if serializer.is_valid():
-            recipe = serializer.save()
-            return Response(RecipeSerializer(
+            recipe, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        recipe = serializer.save()
+        return Response(RecipeSerializer(
                 recipe, context={'request': request}).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id):
         """Удаление рецепта"""
 
-        recipe = get_object_or_404(Recipes, id=id)
+        recipe = get_object_or_404(Recipe, id=id)
 
         if recipe.author != request.user:
             return Response(
@@ -285,12 +278,10 @@ class RecipeGetShortLinkView(APIView):
     """Обработчик для получения короткой ссылки на рецепт"""
 
     def get(self, request, id):
-        recipe = get_object_or_404(Recipes, id=id)
+        recipe = get_object_or_404(Recipe, id=id)
 
         base_url = request.build_absolute_uri('/') + 's/'
-        unique_str = f"{recipe.id}-{recipe.name}"
-        short_hash = hashlib.md5(unique_str.encode()).hexdigest()[:3]
-        short_link = f"{base_url}{short_hash}"
+        short_link = f"{base_url}{recipe.id}"
 
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
 
@@ -299,12 +290,8 @@ class ShortLinkRedirectView(APIView):
     """Обработчик для редиректа по короткой ссылке"""
 
     def get(self, request, short_hash):
-        all_recipes = Recipes.objects.all()
-        for recipe in all_recipes:
-            unique_str = f"{recipe.id}-{recipe.name}"
-            computed_hash = hashlib.md5(unique_str.encode()).hexdigest()[:3]
-            if computed_hash == short_hash:
-                return HttpResponseRedirect(f'/api/recipes/{recipe.id}/')
+        recipe = Recipe.objects.get(id=short_hash)
+        return HttpResponseRedirect(f'/recipes/{recipe.id}/')
 
 
 class BaseRecipeActionView(APIView):
@@ -319,7 +306,7 @@ class BaseRecipeActionView(APIView):
     def post(self, request, id):
         """Добавление рецепта"""
 
-        recipe = get_object_or_404(Recipes, id=id)
+        recipe = get_object_or_404(Recipe, id=id)
         user = request.user
 
         if self.model.objects.filter(user=user, recipe=recipe).exists():
@@ -335,7 +322,7 @@ class BaseRecipeActionView(APIView):
     def delete(self, request, id):
         """Удаление рецепта"""
 
-        recipe = get_object_or_404(Recipes, id=id)
+        recipe = get_object_or_404(Recipe, id=id)
         user = request.user
 
         instance = self.model.objects.filter(user=user, recipe=recipe).first()
@@ -375,7 +362,7 @@ class DownloadShoppingCartView(APIView):
         user = request.user
         recipes = ShoppingCart.objects.filter(
             user=user).values_list('recipe')
-        ingredients_query = IngredientsRecipes.objects.filter(
+        ingredients_query = IngredientRecipe.objects.filter(
             recipe__in=recipes).select_related('ingredient')
 
         ingredient_data = defaultdict(lambda: {'quantity': 0, 'unit': ''})

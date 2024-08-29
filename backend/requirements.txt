@@ -16,7 +16,6 @@ filetype==1.2.0
 flake8==6.0.0
 flake8-isort==6.0.0
 idna==3.7
-isort==5.13.2
 mccabe==0.7.0
 oauthlib==3.2.2
 pillow==10.4.0
@@ -25,6 +24,7 @@ pycodestyle==2.10.0
 pycparser==2.22
 pyflakes==3.0.1
 PyJWT==2.9.0
+python-dotenv==1.0.1
 python3-openid==3.2.0
 pytz==2024.1
 reportlab==4.2.2

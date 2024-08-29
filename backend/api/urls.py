@@ -1,12 +1,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (AvatarView, CustomUserViewSet, DownloadShoppingCartView,
-                    FavoriteRecipeView, IngredientDetailView,
-                    IngredientsListView, RecipeDetailView,
-                    RecipeGetShortLinkView, RecipesListView,
-                    ShoppingCartRecipeView, SubscribeButtonView,
-                    SubscriptionListView, TagDetailView, TagsListView)
+from .views import (
+    AvatarView, CustomUserViewSet, DownloadShoppingCartView,
+    FavoriteRecipeView, IngredientDetailView, IngredientListView,
+    RecipeDetailView, RecipeGetShortLinkView, RecipeListView,
+    ShoppingCartRecipeView, SubscribeButtonView,
+    SubscriptionListView, TagDetailView, TagListView)
 
 app_name = 'api'
 
@@ -21,13 +21,13 @@ urlpatterns = [
     path(
         'users/<int:id>/subscribe/', SubscribeButtonView.as_view(),
         name='subscribe'),
-    path('tags/', TagsListView.as_view(), name='tags'),
+    path('tags/', TagListView.as_view(), name='tags'),
     path('tags/<int:id>/', TagDetailView.as_view(), name='tag'),
-    path('ingredients/', IngredientsListView.as_view(), name='ingredients'),
+    path('ingredients/', IngredientListView.as_view(), name='ingredients'),
     path(
         'ingredients/<int:id>/', IngredientDetailView.as_view(),
         name='ingredient'),
-    path('recipes/', RecipesListView.as_view(), name='recipes'),
+    path('recipes/', RecipeListView.as_view(), name='recipes'),
     path('recipes/<int:id>/', RecipeDetailView.as_view(), name='recipe'),
     path('recipes/<int:id>/get-link/', RecipeGetShortLinkView.as_view(),
          name='get_short_link'),

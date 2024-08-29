@@ -1,17 +1,18 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredients, IngredientsRecipes, Recipes,
-                     ShoppingCart, Tags, TagsRecipes)
+from .models import (
+    Favorite, Ingredient, IngredientRecipe, Recipe,
+    ShoppingCart, Tag, TagRecipe)
 
 
-@admin.register(Tags)
+@admin.register(Tag)
 class TagsAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
     list_filter = ('name',)
 
 
-@admin.register(Ingredients)
+@admin.register(Ingredient)
 class IngredientsAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
@@ -19,11 +20,11 @@ class IngredientsAdmin(admin.ModelAdmin):
 
 
 class IngredientsRecipesInline(admin.TabularInline):
-    model = IngredientsRecipes
+    model = IngredientRecipe
     extra = 0
 
 
-@admin.register(Recipes)
+@admin.register(Recipe)
 class RecipesAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'text', 'cooking_time', 'image', 'author', 'display_tags',
@@ -32,26 +33,15 @@ class RecipesAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     inlines = [IngredientsRecipesInline, ]
 
-    def display_recipe_favorite(self, obj):
-        count = Favorite.objects.filter(recipe=obj).count()
-        return count
-
-    display_recipe_favorite.short_description = (
-        'Количесво добавлений в избранное')
-
     def display_tags(self, obj):
-        tags = []
-        for tag in obj.tags.all():
-            tags.append(str(tag))
-        return ', '.join(tags)
+        tags = obj.tags.all()
+        return ', '.join(str(tag) for tag in tags)
 
     display_tags.short_description = 'Теги'
 
     def display_ingredients(self, obj):
-        ingredients = []
-        for ingredient in obj.ingredients.all():
-            ingredients.append(str(ingredient))
-        return ', '.join(ingredients)
+        ingredients = obj.ingredients.all()
+        return ', '.join(str(ingredient) for ingredient in ingredients)
 
     display_ingredients.short_description = 'Ингредиенты'
 
@@ -62,14 +52,14 @@ class RecipesAdmin(admin.ModelAdmin):
         'Количесво добавлений в избранное')
 
 
-@admin.register(IngredientsRecipes)
+@admin.register(IngredientRecipe)
 class IngredientsRecipesAdmin(admin.ModelAdmin):
     list_display = ('recipe', 'ingredient', 'amount')
     search_fields = ('recipe', 'ingredient')
     list_filter = ('recipe', 'ingredient')
 
 
-@admin.register(TagsRecipes)
+@admin.register(TagRecipe)
 class TagsRecipesAdmin(admin.ModelAdmin):
     list_display = ('recipe', 'tag')
     search_fields = ('recipe', 'tag')

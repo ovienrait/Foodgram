@@ -32,7 +32,7 @@ class Subscription(models.Model):
     subscription = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        verbose_name='подписан',
+        verbose_name='подписан на пользователя',
         related_name='subscription')
 
     class Meta:

@@ -4,8 +4,10 @@ import os
 from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from recipes.models import (Favorite, Ingredients, IngredientsRecipes, Recipes,
-                            ShoppingCart, Tags, TagsRecipes)
+
+from recipes.models import (
+    Favorite, Ingredient, IngredientRecipe, Recipe,
+    ShoppingCart, Tag, TagRecipe)
 from users.models import CustomUser, Subscription
 
 
@@ -74,14 +76,14 @@ class Command(BaseCommand):
     def import_tags(self, row):
         """Импорт данных в модель Tags"""
 
-        tag, created = Tags.objects.get_or_create(
+        tag, created = Tag.objects.get_or_create(
             name=row['name'], slug=row['slug'])
         self.log_result(tag, created, 'тег')
 
     def import_ingredients(self, row):
         """Импорт данных в модель Ingredients"""
 
-        ingredient, created = Ingredients.objects.get_or_create(
+        ingredient, created = Ingredient.objects.get_or_create(
             name=row['name'], measurement_unit=row['measurement_unit'])
         self.log_result(ingredient, created, 'ингредиент')
 
@@ -95,19 +97,19 @@ class Command(BaseCommand):
             image_filename)
         with open(image_path, 'rb') as f:
             image = ContentFile(f.read(), name=image_filename)
-        recipe, created = Recipes.objects.get_or_create(
+        recipe, created = Recipe.objects.get_or_create(
             image=image, name=row['name'], text=row['text'],
             cooking_time=row['cooking_time'],
             author=CustomUser.objects.get(id=row['author']))
         ingredients_list = row['ingredients'].split(',')
         for ingredient_info in ingredients_list:
             ingredient_id, amount = ingredient_info.split(':')
-            ingredient = Ingredients.objects.get(id=ingredient_id)
-            IngredientsRecipes.objects.get_or_create(
+            ingredient = Ingredient.objects.get(id=ingredient_id)
+            IngredientRecipe.objects.get_or_create(
                 recipe=recipe, ingredient=ingredient, amount=amount)
         for tag_id in row['tags'].split(','):
-            tag = Tags.objects.get(id=tag_id)
-            TagsRecipes.objects.get_or_create(recipe=recipe, tag=tag)
+            tag = Tag.objects.get(id=tag_id)
+            TagRecipe.objects.get_or_create(recipe=recipe, tag=tag)
         self.log_result(recipe, created, 'рецепт')
 
     def import_favorites(self, row):
