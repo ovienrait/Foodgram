@@ -253,7 +253,7 @@ class RecipeDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save()
         return Response(RecipeSerializer(
-                recipe, context={'request': request}).data)
+            recipe, context={'request': request}).data)
 
     def delete(self, request, id):
         """Удаление рецепта"""

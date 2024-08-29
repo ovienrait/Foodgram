@@ -159,7 +159,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
 
-    def validate(self, data):            
+    def validate(self, data):
         tags = data.get('tags')
         if len(tags) != len(set(tags)):
             raise serializers.ValidationError(
