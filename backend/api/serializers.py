@@ -35,11 +35,11 @@ class UserSerializer(BaseUserSerializer):
             'last_name', 'is_subscribed', 'avatar')
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request')
-        if not user or user.user.is_anonymous:
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
             return False
         return Subscription.objects.filter(
-            subscription=user.user, subscriber=obj
+            subscription=obj, subscriber=request.user
         ).exists()
 
 
@@ -151,7 +151,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = serializers.ListSerializer(
         child=serializers.DictField(child=serializers.IntegerField()))
     tags = serializers.ListField(child=serializers.IntegerField())
-    image = Base64ImageField()
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = Recipe
@@ -159,6 +159,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
 
     def validate(self, data):
+        if self.instance is None and 'image' not in data:
+            raise serializers.ValidationError(
+                {"image": "Это поле обязательно."})
+
         tags = data.get('tags')
         if len(tags) != len(set(tags)):
             raise serializers.ValidationError(

@@ -390,11 +390,19 @@ class DownloadShoppingCartView(APIView):
 
         p.setFont('DejaVuSans', 12)
         y = height - 100
+        line_height = 20
+        margin_bottom = 40
+
         for ingredient in ingredients:
             name, quantity, unit = ingredient
             line = f'{name} — {quantity} {unit}'
             p.drawString(100, y, line)
-            y -= 20
+            y -= line_height
+
+            if y < margin_bottom:
+                p.showPage()
+                p.setFont('DejaVuSans', 12)
+                y = height - 60
 
         p.showPage()
         p.save()
