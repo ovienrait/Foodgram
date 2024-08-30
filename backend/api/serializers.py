@@ -1,4 +1,3 @@
-from django.db import IntegrityError
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -176,39 +175,50 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
         return data
 
-    def save_ingredients_and_tags(self, recipe, ingredients_data, tags_data):
-        try:
-            IngredientRecipe.objects.filter(recipe=recipe).delete()
-            ingredients_bulk = [
-                IngredientRecipe(
-                    recipe=recipe,
-                    ingredient_id=ingredient_data.get('id'),
-                    amount=ingredient_data.get('amount')
-                ) for ingredient_data in ingredients_data]
-            IngredientRecipe.objects.bulk_create(ingredients_bulk)
-        except IntegrityError:
+    def validate_ingredients_and_tags(self, ingredients_data, tags_data):
+        amount = {
+            ingredient_data['id']: ingredient_data['amount']
+            for ingredient_data in ingredients_data}
+        ingredients = Ingredient.objects.filter(id__in=amount.keys())
+        tags = Tag.objects.filter(id__in=tags_data)
+
+        if len(ingredients) != len(amount.keys()):
             raise serializers.ValidationError(
                 {'ingredients': 'Передан неверный ID ингредиента.'})
 
-        try:
-            recipe.tags.clear()
-            recipe.tags.add(*tags_data)
-        except IntegrityError:
+        if len(tags) != len(tags_data):
             raise serializers.ValidationError(
                 {'tags': 'Передан неверный ID тега.'})
+
+        return amount, ingredients, tags
+
+    def save_ingredients_and_tags(self, recipe, ingredients, tags, amount):
+        IngredientRecipe.objects.filter(recipe=recipe).delete()
+        ingredients_bulk = [
+            IngredientRecipe(
+                recipe=recipe, ingredient=ingredient,
+                amount=amount[ingredient.id]) for ingredient in ingredients]
+        IngredientRecipe.objects.bulk_create(ingredients_bulk)
+
+        recipe.tags.clear()
+        recipe.tags.add(*tags)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+        amount, ingredients, tags = self.validate_ingredients_and_tags(
+            ingredients_data, tags_data)
         recipe = Recipe.objects.create(**validated_data)
-        self.save_ingredients_and_tags(recipe, ingredients_data, tags_data)
+        self.save_ingredients_and_tags(recipe, ingredients, tags, amount)
 
         return recipe
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+        amount, ingredients, tags = self.validate_ingredients_and_tags(
+            ingredients_data, tags_data)
         instance = super().update(instance, validated_data)
-        self.save_ingredients_and_tags(instance, ingredients_data, tags_data)
+        self.save_ingredients_and_tags(instance, ingredients, tags, amount)
 
         return instance

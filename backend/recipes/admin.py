@@ -34,14 +34,14 @@ class RecipesAdmin(admin.ModelAdmin):
     inlines = [IngredientsRecipesInline, ]
 
     def display_tags(self, obj):
-        tags = obj.tags.all()
-        return ', '.join(str(tag) for tag in tags)
+        tags = obj.tags.values_list('name', flat=True)
+        return ', '.join(tags)
 
     display_tags.short_description = 'Теги'
 
     def display_ingredients(self, obj):
-        ingredients = obj.ingredients.all()
-        return ', '.join(str(ingredient) for ingredient in ingredients)
+        ingredients = obj.ingredients.values_list('name', flat=True)
+        return ', '.join(ingredients)
 
     display_ingredients.short_description = 'Ингредиенты'
 
@@ -49,7 +49,7 @@ class RecipesAdmin(admin.ModelAdmin):
         return obj.favorite.count()
 
     display_favorite.short_description = (
-        'Количесво добавлений в избранное')
+        'Количество добавлений в избранное')
 
 
 @admin.register(IngredientRecipe)

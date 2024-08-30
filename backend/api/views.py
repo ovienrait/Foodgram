@@ -290,7 +290,7 @@ class ShortLinkRedirectView(APIView):
     """Обработчик для редиректа по короткой ссылке"""
 
     def get(self, request, short_hash):
-        recipe = Recipe.objects.get(id=short_hash)
+        recipe = get_object_or_404(Recipe, id=short_hash)
         return HttpResponseRedirect(f'/recipes/{recipe.id}/')
 
 
