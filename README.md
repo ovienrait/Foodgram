@@ -17,4 +17,3 @@ https://foodgram.3utilities.com
 * `PostgreSQL`
 * `Docker Compose`
 * `GitHub Actions`
-
