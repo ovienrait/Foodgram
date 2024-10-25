@@ -39,6 +39,8 @@ docker compose -f docker-compose.yml up --build -d
 - Скопируйте файлы статики
 ```
 docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
+```
+```
 docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
 ```
 - Выполните миграции
