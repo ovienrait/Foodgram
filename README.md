@@ -1,4 +1,4 @@
-# ![alt text](frontend/src/images/logo-header.png)
+# ![alt text](frontend/src/images/logo-footer.png)
 
 ## Кулинарная книга (Foodrgam)  
 Проект представляет собой онлайн-сервис для публикации рецептов в виде API приложения.
